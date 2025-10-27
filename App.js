@@ -1,4 +1,10 @@
 // Nama File: App.js
+// Penjelasan singkat:
+// Ini adalah entry point aplikasi. Mengatur navigasi tab bawah.
+// Menyimpan state global sederhana: index lagu saat ini, mode shuffle, loop, dan daftar lagu yang disukai.
+// REAL_MUSIC adalah daftar lagu yang dipakai di semua layar.
+// Istilah: "state" = data yang berubah selama aplikasi berjalan.
+// Istilah: "props" = data yang dikirim dari satu komponen ke komponen lain.
 
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
@@ -23,12 +29,17 @@ const ACTIVE_COLOR = '#FFFFFF';
 const INACTIVE_COLOR = '#A0AEC0';
 const TEXT_COLOR = '#FFFFFF';
 
-// Data Musik
+// Data Musik (sample)
+// file: require(...) menunjukkan file audio lokal dalam folder assets.
+// id unik dipakai untuk identifikasi lagu.
 const songData = [
   { id: '1', title: 'Bella Ciao', artist: 'Manu Pilas', artwork: 'https://lh3.googleusercontent.com/v6zKg8G00Bq7G4FTDVzx8RdV3ZEdQRIMwbWfnjnD7R9042CgRJqSTUz1GZ62Wn483IQqSydIaflTNx42=w544-h544-l90-rj', file: require('./assets/music/song1.mp3') },
   { id: '2', title: 'Everything u are', artist: 'Hindia', artwork: 'https://lh3.googleusercontent.com/pP42VdTGrlRG0oCRZdgwhZ57R6CpfWDtewbZ9Mlg6gNoKWAjY4R59sGt_Le_zdWHh6hpNeRobL8aBVxwVQ=w544-h544-l90-rj', file: require('./assets/music/song2.mp3') },
   { id: '3', title: 'Last Night on Earth', artist: 'Green Day', artwork: 'https://lh3.googleusercontent.com/FnRYR-BT3RONNVBVF0Ws8IzCnzZYu7qbulZ3LL99NadPK8kEK_dvyldmJEGg_DZpJ0UsKoqwALI8SEz6=w544-h544-l90-rj', file: require('./assets/music/song3.mp3') },
 ];
+// Untuk demo memperbanyak data agar list lebih panjang.
+// Teknik: cloning array dan mengganti id dengan id + indeks.
+// Alasan: memudahkan testing paging / list panjang.
 const generatedMusicList = [];
 for (let i = 0; i < 10; i++) { songData.forEach((song, index) => { generatedMusicList.push({ ...song, id: `${song.id}-${i}` }); }); }
 const REAL_MUSIC = generatedMusicList;
@@ -40,12 +51,17 @@ function MainTabs() {
   const bottomSafeArea = insets.bottom;
 
   // State Management
+  // currentSongIndex menyimpan indeks lagu yang sedang diputar di REAL_MUSIC.
+  // isShuffled menentukan apakah pemilihan lagu selanjutnya acak.
+  // isLooping menentukan apakah lagu diulang terus.
+  // likedSongIds adalah Set berisi id lagu yang di-like.
   const [currentSongIndex, setCurrentSongIndex] = useState(0);
   const [isShuffled, setIsShuffled] = useState(false);
   const [isLooping, setIsLooping] = useState(false);
   const [likedSongIds, setLikedSongIds] = useState(new Set());
 
-  // Muat 'like'
+  // Muat 'like' dari AsyncStorage saat komponen mount.
+  // AsyncStorage = penyimpanan sederhana di perangkat.
   useEffect(() => {
     const loadLikedSongs = async () => {
       try {
@@ -58,7 +74,7 @@ function MainTabs() {
     loadLikedSongs();
   }, []);
 
-  // Simpan 'like'
+  // Simpan 'like' ke AsyncStorage setiap kali ada perubahan.
   const saveLikedSongs = async (newLikedSet) => {
     try {
       const arrayToSave = Array.from(newLikedSet);
@@ -66,7 +82,10 @@ function MainTabs() {
     } catch (e) { console.error("[App.js] Gagal menyimpan like:", e); }
   };
 
-  // Toggle 'like'
+  // Toggle 'like' sederhana:
+  // Jika sudah ada di set -> hapus.
+  // Jika belum -> tambahkan.
+  // Simpan ke state dan AsyncStorage.
   const toggleLike = (songId) => {
     if (!songId) { console.warn("[App.js] toggleLike: songId tidak valid."); return; }
     const newLikedSet = new Set(likedSongIds);
@@ -76,10 +95,12 @@ function MainTabs() {
     saveLikedSongs(newLikedSet);
   };
 
-  // Pastikan currentSong valid
+  // Validasi currentSong berdasarkan index.
   const currentSong = currentSongIndex !== null && currentSongIndex >= 0 && currentSongIndex < REAL_MUSIC.length ? REAL_MUSIC[currentSongIndex] : null;
 
-  // Fungsi kontrol musik
+  // Fungsi kontrol musik: getRandomIndex untuk shuffle.
+  // Logika: pilih index acak yang berbeda dari current.
+  // Batas percobaan untuk menghindari infinite loop.
   const getRandomIndex = () => {
     if (REAL_MUSIC.length <= 1) return 0;
     let newIndex; let attempts = 0; const maxAttempts = REAL_MUSIC.length * 2;
@@ -88,6 +109,9 @@ function MainTabs() {
     return newIndex;
   };
 
+  // handleNextSong: menghitung index berikutnya berdasarkan mode.
+  // Jika shuffle true -> pakai getRandomIndex.
+  // Jika tidak -> index + 1 dengan modulo (wrap-around).
   const handleNextSong = () => {
     setCurrentSongIndex(prevIndex => {
         if (prevIndex === null || prevIndex < 0 || prevIndex >= REAL_MUSIC.length) return 0;
@@ -99,6 +123,7 @@ function MainTabs() {
     });
   };
 
+  // handlePrevSong: mirip next, tapi mundur satu langkah.
   const handlePrevSong = () => {
     setCurrentSongIndex(prevIndex => {
         if (prevIndex === null || prevIndex < 0 || prevIndex >= REAL_MUSIC.length) return 0;
@@ -110,6 +135,7 @@ function MainTabs() {
     });
   };
 
+  // Toggle shuffle: jika aktifkan shuffle lalu loop aktif, matikan loop supaya tidak bentrok.
   const toggleShuffle = () => {
     setIsShuffled(prev => {
         const nextState = !prev;
@@ -118,6 +144,7 @@ function MainTabs() {
     });
   };
 
+  // Toggle looping: jika aktifkan loop lalu shuffle aktif, matikan shuffle supaya satu mode saja aktif.
   const toggleLooping = () => {
     setIsLooping(prev => {
         const nextState = !prev;
@@ -148,7 +175,7 @@ function MainTabs() {
           return <Ionicons name={iconName} size={size} color={color} />;
         },
         tabBarLabelStyle: { marginBottom: 2, fontSize: 10, },
-        // Sembunyikan header untuk layar tertentu
+        // Sembunyikan header untuk layar tertentu (list/search/liked)
         headerShown: !['Beranda', 'Pencarian', 'Disukai'].includes(route.name)
       })}
     >
@@ -181,4 +208,4 @@ export default function App() {
   );
 }
 
-const styles = StyleSheet.create({}); // Kosong karena style diatur di screenOptions
+const styles = StyleSheet.create({}); 
