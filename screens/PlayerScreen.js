@@ -1,5 +1,10 @@
 // Nama File: screens/PlayerScreen.js
-// Pemeriksaan ulang: Pastikan tidak ada teks di luar <Text>
+// Penjelasan singkat:
+// Komponen ini mengatur pemutaran audio menggunakan expo-av.
+// Fitur: play/pause, next, prev, seek, shuffle, loop, like, menampilkan progress.
+// Istilah: Audio.Sound dari expo-av adalah objek yang mengontrol pemutaran audio.
+// Istilah: positionMillis = posisi pemutaran saat ini dalam milidetik.
+// Istilah: durationMillis = durasi total lagu dalam milidetik.
 
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,6 +12,11 @@ import { View, Text, StyleSheet, Image, TouchableOpacity, ActivityIndicator, Dim
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 import Slider from '@react-native-community/slider';
+
+// Komponen
+// import PlayerControls from '../components/molecules/PlayerControls';
+// import SongItem from '../components/molecules/SongItem';
+// import ProgressSlider from '../components/atoms/ProgressSlider';
 
 const BACKGROUND_COLOR = '#121212';
 const TEXT_COLOR = '#FFFFFF';
@@ -17,18 +27,20 @@ const BUTTON_COLOR = '#282828';
 const screenWidth = Dimensions.get('window').width;
 const albumArtSize = screenWidth * 0.8;
 
+// Helper: ubah milidetik ke format mm:ss
 function formatMillis(millis) {
   if (!millis) return '0:00';
   const totalSeconds = Math.floor(millis / 1000);
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
-  return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  return ${minutes}:${seconds < 10 ? '0' : ''}${seconds};
 }
 
 export default function PlayerScreen({
   song, onNext, onPrev, isShuffled, onShuffleToggle, isLooping, onLoopToggle, isLiked, onToggleLike
 }) {
 
+  // sound: objek Audio.Sound yang sedang digunakan.
   const [sound, setSound] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -38,33 +50,113 @@ export default function PlayerScreen({
   const [playbackStatusBeforeSeek, setPlaybackStatusBeforeSeek] = useState(false);
   const [isSliderDisabled, setIsSliderDisabled] = useState(true);
 
+  // Jika loading atau sound berubah, slider dinonaktifkan/diaktifkan.
   useEffect(() => { setIsSliderDisabled(isLoading || !sound); }, [isLoading, sound]);
 
+  // Callback untuk menerima update status pemutaran.
+  // status.isLoaded: apakah file audio berhasil dimuat.
+  // status.positionMillis: posisi sekarang.
+  // status.durationMillis: durasi total.
+  // status.didJustFinish: berarti lagu selesai diputar.
   const onPlaybackStatusUpdate = (status) => {
     if (status.isLoaded) {
-      if (!isSeeking) setPositionMillis(status.positionMillis);
+      if (!isSeeking) setPositionMillis(status.positionMillis); // hanya update posisi jika tidak sedang seek
       setDurationMillis(status.durationMillis);
-      if (status.didJustFinish && !isLooping) onNext();
+      if (status.didJustFinish && !isLooping) onNext(); // jika selesai dan tidak loop maka next
     } else {
-      if (status.error) console.error(`[PlayerScreen] Playback Error: ${status.error}`);
+      if (status.error) console.error([PlayerScreen] Playback Error: ${status.error});
       setIsSliderDisabled(true); setPositionMillis(0); setDurationMillis(0);
     }
   };
 
+  // loadAndPlaySound: algoritma pemuatan dan mulai memutar
+  // 1. set loading true
+  // 2. unload sound lama jika ada
+  // 3. Audio.setAudioModeAsync untuk izinkan play saat silent mode di iOS
+  // 4. Audio.Sound.createAsync untuk membuat sound baru dan langsung play
+  // 5. jika berhasil, simpan objek sound dan set callback status update
+  // 6. jika gagal, handle error
   async function loadAndPlaySound(songAsset) {
-    if (!songAsset) return; setIsLoading(true); setIsPlaying(false); setPositionMillis(0); setDurationMillis(0); setIsSliderDisabled(true); if (sound) await sound.unloadAsync(); try { await Audio.setAudioModeAsync({ playsInSilentModeIOS: true }); const { sound: newSound, status } = await Audio.Sound.createAsync( songAsset, { shouldPlay: true, isLooping: isLooping } ); if (status.isLoaded) { newSound.setOnPlaybackStatusUpdate(onPlaybackStatusUpdate); setSound(newSound); setIsPlaying(true); } else { setSound(null); setIsPlaying(false); console.error("Gagal load saat createAsync"); } setIsLoading(false); } catch (error) { console.error("Error loadAndPlaySound:", error); setIsLoading(false); setIsSliderDisabled(true); setSound(null); }
+    if (!songAsset) return;
+    setIsLoading(true); setIsPlaying(false); setPositionMillis(0); setDurationMillis(0); setIsSliderDisabled(true);
+    if (sound) await sound.unloadAsync(); // kosongkan sound lama
+    try {
+      await Audio.setAudioModeAsync({ playsInSilentModeIOS: true }); // pastikan bisa play saat silent
+      const { sound: newSound, status } = await Audio.Sound.createAsync(
+        songAsset,
+        { shouldPlay: true, isLooping: isLooping }
+      );
+      if (status.isLoaded) {
+        newSound.setOnPlaybackStatusUpdate(onPlaybackStatusUpdate);
+        setSound(newSound);
+        setIsPlaying(true);
+      } else {
+        setSound(null);
+        setIsPlaying(false);
+        console.error("Gagal load saat createAsync");
+      }
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error loadAndPlaySound:", error);
+      setIsLoading(false);
+      setIsSliderDisabled(true);
+      setSound(null);
+    }
   }
 
-  useEffect(() => { if (song) loadAndPlaySound(song.file); else if (sound) { sound.unloadAsync(); setSound(null); } }, [song]);
+  // Jika prop song berubah, muat lagu baru.
+  useEffect(() => {
+    if (song) loadAndPlaySound(song.file);
+    else if (sound) { sound.unloadAsync(); setSound(null); }
+  }, [song]);
+
+  // saat komponen unmount, unload sound untuk lepaskan resource.
   useEffect(() => { return sound ? () => { sound.unloadAsync(); } : undefined; }, [sound]);
 
-  const handlePlayPause = async () => { if (!sound) return; try { if (isPlaying) { await sound.pauseAsync(); setIsPlaying(false); } else { await sound.playAsync(); setIsPlaying(true); } } catch (error) { console.error("Error handlePlayPause:", error); setIsPlaying(false); } };
-  const handleRepeat = async () => { onLoopToggle(); if (sound) { try { await sound.setIsLoopingAsync(!isLooping); } catch (error) { console.error("Error setting looping:", error); } } };
+  // Tombol play/pause: jika isPlaying maka pause, lainwaktu play.
+  const handlePlayPause = async () => {
+    if (!sound) return;
+    try {
+      if (isPlaying) { await sound.pauseAsync(); setIsPlaying(false); }
+      else { await sound.playAsync(); setIsPlaying(true); }
+    } catch (error) { console.error("Error handlePlayPause:", error); setIsPlaying(false); }
+  };
+
+  // Toggle repeat: ubah state loop di parent, lalu set looping pada sound jika ada.
+  const handleRepeat = async () => {
+    onLoopToggle();
+    if (sound) {
+      try { await sound.setIsLoopingAsync(!isLooping); }
+      catch (error) { console.error("Error setting looping:", error); }
+    }
+  };
+
+  // Toggle shuffle: hanya panggil parent toggle
   const handleShuffle = () => onShuffleToggle();
-  const handleSlidingStart = async () => { if (!sound || isSliderDisabled) return; setIsSeeking(true); setPlaybackStatusBeforeSeek(isPlaying); if (isPlaying) await sound.pauseAsync(); };
-  const handleSlidingComplete = async (value) => { if (!sound || isSliderDisabled) return; if (value >= 0 && value <= durationMillis) { setPositionMillis(value); try { await sound.setPositionAsync(value); } catch (error) { console.warn("Error setPosition:", error); } } else { console.warn("Invalid seek:", value); } setIsSeeking(false); if (playbackStatusBeforeSeek) await sound.playAsync(); };
+
+  // Saat user mulai sliding seekbar: hentikan update posisi sementara
+  const handleSlidingStart = async () => {
+    if (!sound || isSliderDisabled) return;
+    setIsSeeking(true);
+    setPlaybackStatusBeforeSeek(isPlaying);
+    if (isPlaying) await sound.pauseAsync(); // pause saat seek untuk menghindari jump
+  };
+
+  // Saat user selesai sliding: set posisi audio ke value
+  const handleSlidingComplete = async (value) => {
+    if (!sound || isSliderDisabled) return;
+    if (value >= 0 && value <= durationMillis) {
+      setPositionMillis(value);
+      try { await sound.setPositionAsync(value); } catch (error) { console.warn("Error setPosition:", error); }
+    } else { console.warn("Invalid seek:", value); }
+    setIsSeeking(false);
+    if (playbackStatusBeforeSeek) await sound.playAsync(); // resume jika sebelumnya playing
+  };
+
+  // toggle like
   const handleLikePress = () => { if (song && song.id) onToggleLike(song.id); else console.warn("Cannot like, no song id"); };
 
+  // Jika tidak ada song, tampilkan pesan pilih lagu.
   if (!song) {
     return (
       <SafeAreaView style={styles.safeArea}>
@@ -76,6 +168,8 @@ export default function PlayerScreen({
     );
   }
 
+  // RENDER UI: bagian atas menampilkan artwork dan info lagu.
+  // Bagian bawah menampilkan progress + kontrol (shuffle, prev, play/pause, next, repeat).
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
