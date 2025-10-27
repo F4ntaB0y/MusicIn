@@ -1,4 +1,8 @@
 // Nama File: screens/MusicListScreen.js
+// Penjelasan singkat:
+// Menampilkan daftar semua lagu (REAL_MUSIC).
+// Tiap item bisa diketuk untuk memutar. State currentSong dipakai untuk menyorot item yang sedang diputar.
+// Algoritma: saat dipilih -> cari index asli lagu di list -> setCurrentSongIndex -> navigasi ke Player.
 
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -39,16 +43,18 @@ export default function MusicListScreen({
   setCurrentSongIndex
 }) {
 
+  // handlePlaySong: temukan index asli dalam songList lalu set index.
+  // Alasan: props yang diterima mungkin berasal dari array yang sama (REAL_MUSIC).
   const handlePlaySong = (selectedSong) => {
     const originalIndex = songList.findIndex(song => song.id === selectedSong.id);
     if (originalIndex !== -1) {
       setCurrentSongIndex(originalIndex);
-      navigation.navigate('Player');
+      navigation.navigate('Player'); // pindah ke layar player
     }
   };
 
   const renderItem = ({ item }) => {
-    const isPlaying = currentSong?.id === item.id;
+    const isPlaying = currentSong?.id === item.id; // cek apakah ini lagu yang sedang diputar
     return (
       <SongItem
         item={item}
