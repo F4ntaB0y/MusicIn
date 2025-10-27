@@ -1,30 +1,4 @@
-// Nama File: screens/LikedMusicScreen.js
-// Perbaikan: Mengembalikan JSX lengkap untuk SongItem
-
-import React from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
-  Image
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-
-const BACKGROUND_COLOR = '#121212';
-const TEXT_COLOR = '#FFFFFF';
-const SUBTEXT_COLOR = '#A0AEC0';
-const LIKE_COLOR = '#1DB954'; // Hijau Spotify
-
-// === KEMBALIKAN JSX LENGKAP DI SINI ===
-const SongItem = ({ item, isPlaying, onPress }) => (
-  <TouchableOpacity style={styles.songItemContainer} onPress={onPress}>
-    <Image source={{ uri: item.artwork }} style={styles.artwork} />
-    <View style={styles.songInfo}>
-      <Text style={[styles.songTitle, isPlaying && styles.playingText]} numberOfLines={1}>
-        {item.title}
+}
       </Text>
       <Text style={styles.songArtist} numberOfLines={1}>{item.artist}</Text>
     </View>
