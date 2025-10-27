@@ -1,5 +1,8 @@
 // Nama File: screens/SearchScreen.js
-// Perbaikan: Mengembalikan JSX lengkap untuk SongItem
+// Penjelasan singkat:
+// Menyediakan pencarian lagu berdasarkan judul atau artis.
+// Gunakan useMemo untuk menghindari komputasi ulang daftar hasil pencarian bila tidak perlu.
+// Algoritma pencarian: filter array songList dengan includes pada string lowercase.
 
 import React, { useState, useMemo } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -20,7 +23,8 @@ const SUBTEXT_COLOR = '#A0AEC0';
 const BUTTON_COLOR = '#282828';
 const THEME_COLOR = '#1DB954'; // Hijau Spotify
 
-// === KEMBALIKAN JSX LENGKAP DI SINI ===
+// Komponen kecil untuk menampilkan item lagu di hasil pencarian.
+// isPlaying untuk menandai lagu yang sedang dimainkan.
 const SongItem = ({ item, isPlaying, onPress }) => (
   <TouchableOpacity style={styles.songItemContainer} onPress={onPress}>
     <Image source={{ uri: item.artwork }} style={styles.artwork} />
@@ -35,7 +39,6 @@ const SongItem = ({ item, isPlaying, onPress }) => (
     )}
   </TouchableOpacity>
 );
-// === AKHIR PENGEMBALIAN ===
 
 export default function SearchScreen({
   navigation,
@@ -46,6 +49,8 @@ export default function SearchScreen({
 
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Gunakan useMemo agar filteredSongs hanya dihitung saat searchQuery atau songList berubah.
+  // Ini menghemat performa pada list panjang.
   const filteredSongs = useMemo(() => {
     if (!searchQuery) return [];
     const query = searchQuery.toLowerCase();
@@ -55,6 +60,8 @@ export default function SearchScreen({
     );
   }, [searchQuery, songList]);
 
+  // Saat pilih lagu di hasil pencarian:
+  // cari index asli di songList lalu setCurrentSongIndex dan navigasi ke Player.
   const handlePlaySong = (selectedSong) => {
     const originalIndex = songList.findIndex(song => song.id === selectedSong.id);
     if (originalIndex !== -1) {
