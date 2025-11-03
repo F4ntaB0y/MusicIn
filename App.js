@@ -1,4 +1,8 @@
 // Nama File: App.js
+// Penjelasan:
+// Entry point aplikasi.
+// PERUBAHAN: Menampilkan header navigasi di semua layar untuk konsistensi.
+// PERUBAHAN: Judul tab 'Beranda' diubah menjadi 'Selamat Datang'.
 
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
@@ -15,15 +19,12 @@ import PlayerScreen from './screens/PlayerScreen';
 import LikedMusicScreen from './screens/LikedMusicScreen';
 import ProfileScreen from './screens/ProfileScreen';
 
+// Impor warna global
+import { BACKGROUND, TEXT_PRIMARY, TEXT_SECONDARY } from './src/constants/colors';
+
 const Tab = createBottomTabNavigator();
 
-// Konstanta warna
-const BACKGROUND_COLOR = '#121212';
-const ACTIVE_COLOR = '#FFFFFF';
-const INACTIVE_COLOR = '#A0AEC0';
-const TEXT_COLOR = '#FFFFFF';
-
-// Data Musik
+// Data Musik (sample)
 const songData = [
   { id: '1', title: 'Bella Ciao', artist: 'Manu Pilas', artwork: 'https://lh3.googleusercontent.com/v6zKg8G00Bq7G4FTDVzx8RdV3ZEdQRIMwbWfnjnD7R9042CgRJqSTUz1GZ62Wn483IQqSydIaflTNx42=w544-h544-l90-rj', file: require('./assets/music/song1.mp3') },
   { id: '2', title: 'Everything u are', artist: 'Hindia', artwork: 'https://lh3.googleusercontent.com/pP42VdTGrlRG0oCRZdgwhZ57R6CpfWDtewbZ9Mlg6gNoKWAjY4R59sGt_Le_zdWHh6hpNeRobL8aBVxwVQ=w544-h544-l90-rj', file: require('./assets/music/song2.mp3') },
@@ -40,12 +41,13 @@ function MainTabs() {
   const bottomSafeArea = insets.bottom;
 
   // State Management
-  const [currentSongIndex, setCurrentSongIndex] = useState(0);
+  // State awal null agar musik tidak langsung main
+  const [currentSongIndex, setCurrentSongIndex] = useState(null); 
   const [isShuffled, setIsShuffled] = useState(false);
   const [isLooping, setIsLooping] = useState(false);
   const [likedSongIds, setLikedSongIds] = useState(new Set());
 
-  // Muat 'like'
+  // ... (useEffect dan fungsi handler lainnya tetap sama) ...
   useEffect(() => {
     const loadLikedSongs = async () => {
       try {
@@ -58,7 +60,6 @@ function MainTabs() {
     loadLikedSongs();
   }, []);
 
-  // Simpan 'like'
   const saveLikedSongs = async (newLikedSet) => {
     try {
       const arrayToSave = Array.from(newLikedSet);
@@ -66,7 +67,6 @@ function MainTabs() {
     } catch (e) { console.error("[App.js] Gagal menyimpan like:", e); }
   };
 
-  // Toggle 'like'
   const toggleLike = (songId) => {
     if (!songId) { console.warn("[App.js] toggleLike: songId tidak valid."); return; }
     const newLikedSet = new Set(likedSongIds);
@@ -76,10 +76,8 @@ function MainTabs() {
     saveLikedSongs(newLikedSet);
   };
 
-  // Pastikan currentSong valid
   const currentSong = currentSongIndex !== null && currentSongIndex >= 0 && currentSongIndex < REAL_MUSIC.length ? REAL_MUSIC[currentSongIndex] : null;
 
-  // Fungsi kontrol musik
   const getRandomIndex = () => {
     if (REAL_MUSIC.length <= 1) return 0;
     let newIndex; let attempts = 0; const maxAttempts = REAL_MUSIC.length * 2;
@@ -130,14 +128,26 @@ function MainTabs() {
     <Tab.Navigator
       initialRouteName="Player"
       screenOptions={({ route }) => ({
-        headerStyle: { backgroundColor: BACKGROUND_COLOR },
-        // Style judul header default (bold, ukuran 24)
-        headerTitleStyle: { color: TEXT_COLOR, fontSize: 24, fontWeight: 'bold' },
-        tabBarStyle: {
-          backgroundColor: BACKGROUND_COLOR, borderTopColor: '#282828',
-          height: 55 + bottomSafeArea, paddingBottom: bottomSafeArea > 5 ? bottomSafeArea - 5 : 5 , paddingTop: 5,
+        headerStyle: { 
+          backgroundColor: BACKGROUND, 
+          // TAMBAHKAN DUA BARIS INI
+          borderBottomWidth: 1,
+          borderBottomColor: '#282828', // Warna abu-abu gelap (BUTTON_PRIMARY)
         },
-        tabBarActiveTintColor: ACTIVE_COLOR, tabBarInactiveTintColor: INACTIVE_COLOR,
+        headerTitleStyle: { 
+          color: TEXT_PRIMARY, 
+          fontSize: 24, 
+          fontWeight: 'bold' 
+        },
+        tabBarStyle: {
+          backgroundColor: BACKGROUND, 
+          borderTopColor: '#282828',
+          height: 55 + bottomSafeArea, 
+          paddingBottom: bottomSafeArea > 5 ? bottomSafeArea - 5 : 5 , 
+          paddingTop: 5,
+        },
+        tabBarActiveTintColor: TEXT_PRIMARY, 
+        tabBarInactiveTintColor: TEXT_SECONDARY, 
         tabBarIcon: ({ focused, color, size }) => {
           let iconName = 'alert-circle-outline';
           if (route.name === 'Beranda') iconName = focused ? 'home' : 'home-outline';
@@ -147,13 +157,15 @@ function MainTabs() {
           else if (route.name === 'Profil') iconName = focused ? 'person' : 'person-outline';
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarLabelStyle: { marginBottom: 2, fontSize: 10, },
-        // Sembunyikan header untuk layar tertentu
-        headerShown: !['Beranda', 'Pencarian', 'Disukai'].includes(route.name)
+        tabBarLabelStyle: { 
+          marginBottom: 2, 
+          fontSize: 10, 
+        },
+        // PERUBAHAN: Baris 'headerShown' dihapus dari sini agar semua header tampil
       })}
     >
-      {/* Hubungkan Layar Asli & Kirim Props */}
-      <Tab.Screen name="Beranda" options={{ title: 'Daftar Musik' }}>
+      {/* PERUBAHAN: title diubah menjadi 'Selamat Datang' */}
+      <Tab.Screen name="Beranda" options={{ title: 'Selamat Datang' }}>
         {(props) => ( <MusicListScreen {...props} songList={REAL_MUSIC} currentSong={currentSong} setCurrentSongIndex={setCurrentSongIndex} /> )}
       </Tab.Screen>
       <Tab.Screen name="Pencarian" options={{ title: 'Pencarian' }}>
@@ -181,4 +193,4 @@ export default function App() {
   );
 }
 
-const styles = StyleSheet.create({}); // Kosong karena style diatur di screenOptions
+const styles = StyleSheet.create({});

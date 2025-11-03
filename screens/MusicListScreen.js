@@ -1,4 +1,5 @@
 // Nama File: screens/MusicListScreen.js
+// PERUBAHAN: 'bottom' dihapus dari prop 'edges' di SafeAreaView
 
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,30 +8,13 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
-  Image
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 
-const BACKGROUND_COLOR = '#121212';
-const TEXT_COLOR = '#FFFFFF';
-const SUBTEXT_COLOR = '#A0AEC0';
-const THEME_COLOR = '#1DB954';
+// Impor Molekul
+import SongItem from '../components/molecules/SongItem';
 
-const SongItem = ({ item, isPlaying, onPress }) => (
-  <TouchableOpacity style={styles.songItemContainer} onPress={onPress}>
-    <Image source={{ uri: item.artwork }} style={styles.artwork} />
-    <View style={styles.songInfo}>
-      <Text style={[styles.songTitle, isPlaying && styles.playingText]} numberOfLines={1}>
-        {item.title}
-      </Text>
-      <Text style={styles.songArtist} numberOfLines={1}>{item.artist}</Text>
-    </View>
-    {isPlaying && (
-      <Ionicons name="volume-medium" size={24} color={THEME_COLOR} style={styles.playingIcon} />
-    )}
-  </TouchableOpacity>
-);
+// Impor warna global
+import { BACKGROUND } from '../src/constants/colors';
 
 export default function MusicListScreen({
   navigation,
@@ -59,8 +43,8 @@ export default function MusicListScreen({
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
-      <Text style={styles.headerTitle}>Selamat Datang</Text>
+    // PERUBAHAN DI BARIS INI: 'bottom' dihapus
+    <SafeAreaView style={styles.safeArea} edges={['left', 'right']}>
       <FlatList
         data={songList}
         renderItem={renderItem}
@@ -73,14 +57,11 @@ export default function MusicListScreen({
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: BACKGROUND_COLOR, },
-  list: { flex: 1, },
-  headerTitle: { fontSize: 24, fontWeight: 'bold', color: TEXT_COLOR, paddingHorizontal: 20, paddingTop: 10, paddingBottom: 10, },
-  songItemContainer: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 20, },
-  artwork: { width: 50, height: 50, borderRadius: 8, marginRight: 15, },
-  songInfo: { flex: 1, },
-  songTitle: { fontSize: 16, fontWeight: 'bold', color: TEXT_COLOR, },
-  songArtist: { fontSize: 14, color: SUBTEXT_COLOR, },
-  playingText: { color: THEME_COLOR, },
-  playingIcon: { marginLeft: 10, },
+  safeArea: { 
+    flex: 1, 
+    backgroundColor: BACKGROUND, 
+  },
+  list: { 
+    flex: 1, 
+  },
 });

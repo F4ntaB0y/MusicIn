@@ -1,5 +1,5 @@
 // Nama File: screens/LikedMusicScreen.js
-// Perbaikan: Mengembalikan JSX lengkap untuk SongItem
+// PERUBAHAN: 'bottom' dihapus dari prop 'edges' di SafeAreaView
 
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,31 +8,14 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
-  Image
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-const BACKGROUND_COLOR = '#121212';
-const TEXT_COLOR = '#FFFFFF';
-const SUBTEXT_COLOR = '#A0AEC0';
-const LIKE_COLOR = '#1DB954'; // Hijau Spotify
+// Impor Molekul
+import SongItem from '../components/molecules/SongItem';
 
-// === KEMBALIKAN JSX LENGKAP DI SINI ===
-const SongItem = ({ item, isPlaying, onPress }) => (
-  <TouchableOpacity style={styles.songItemContainer} onPress={onPress}>
-    <Image source={{ uri: item.artwork }} style={styles.artwork} />
-    <View style={styles.songInfo}>
-      <Text style={[styles.songTitle, isPlaying && styles.playingText]} numberOfLines={1}>
-        {item.title}
-      </Text>
-      <Text style={styles.songArtist} numberOfLines={1}>{item.artist}</Text>
-    </View>
-    {/* Ikon hati untuk layar Disukai */}
-    <Ionicons name="heart" size={24} color={LIKE_COLOR} style={styles.playingIcon} />
-  </TouchableOpacity>
-);
-// === AKHIR PENGEMBALIAN ===
+// Impor warna global
+import { BACKGROUND, TEXT_PRIMARY, TEXT_SECONDARY } from '../src/constants/colors';
 
 export default function LikedMusicScreen({
   navigation,
@@ -58,14 +41,15 @@ export default function LikedMusicScreen({
       <SongItem
         item={item}
         isPlaying={isPlaying}
+        isLiked={true} 
         onPress={() => handlePlaySong(item)}
       />
     );
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
-        <Text style={styles.headerTitle}>Musik yang Disukai</Text>
+    // PERUBAHAN DI BARIS INI: 'bottom' dihapus
+    <SafeAreaView style={styles.safeArea} edges={['left', 'right']}>
         {likedSongs.length > 0 ? (
             <FlatList
                 data={likedSongs}
@@ -76,7 +60,7 @@ export default function LikedMusicScreen({
             />
         ) : (
             <View style={styles.emptyContainer}>
-                <Ionicons name="heart-outline" size={80} color={SUBTEXT_COLOR} />
+                <Ionicons name="heart-outline" size={80} color={TEXT_SECONDARY} />
                 <Text style={styles.emptyText}>Belum ada lagu disukai.</Text>
                 <Text style={styles.emptySubText}>Tekan ikon hati untuk menyimpan.</Text>
             </View>
@@ -86,17 +70,30 @@ export default function LikedMusicScreen({
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: BACKGROUND_COLOR },
-  headerTitle: { fontSize: 24, fontWeight: 'bold', color: TEXT_COLOR, paddingHorizontal: 20, paddingTop: 10, paddingBottom: 10, },
-  list: { flex: 1 },
-  songItemContainer: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 20 },
-  artwork: { width: 50, height: 50, borderRadius: 8, marginRight: 15 },
-  songInfo: { flex: 1 },
-  songTitle: { fontSize: 16, fontWeight: 'bold', color: TEXT_COLOR },
-  songArtist: { fontSize: 14, color: SUBTEXT_COLOR },
-  playingText: { color: LIKE_COLOR }, // Tetap gunakan LIKE_COLOR untuk highlight di halaman ini
-  playingIcon: { marginLeft: 10 },
-  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
-  emptyText: { fontSize: 18, fontWeight: 'bold', color: TEXT_COLOR, textAlign: 'center', marginTop: 20 },
-  emptySubText: { fontSize: 14, color: SUBTEXT_COLOR, textAlign: 'center', marginTop: 10 }
+  safeArea: { 
+    flex: 1, 
+    backgroundColor: BACKGROUND, 
+  },
+  list: { 
+    flex: 1 
+  },
+  emptyContainer: { 
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    padding: 20 
+  },
+  emptyText: { 
+    fontSize: 18, 
+    fontWeight: 'bold', 
+    color: TEXT_PRIMARY, 
+    textAlign: 'center', 
+    marginTop: 20 
+  },
+  emptySubText: { 
+    fontSize: 14, 
+    color: TEXT_SECONDARY, 
+    textAlign: 'center', 
+    marginTop: 10 
+  }
 });

@@ -1,5 +1,5 @@
 // Nama File: screens/SearchScreen.js
-// Perbaikan: Mengembalikan JSX lengkap untuk SongItem
+// PERUBAHAN: 'bottom' dihapus dari prop 'edges' di SafeAreaView
 
 import React, { useState, useMemo } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,35 +7,16 @@ import {
   View,
   Text,
   StyleSheet,
-  TextInput,
   FlatList,
-  TouchableOpacity,
-  Image
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-const BACKGROUND_COLOR = '#121212';
-const TEXT_COLOR = '#FFFFFF';
-const SUBTEXT_COLOR = '#A0AEC0';
-const BUTTON_COLOR = '#282828';
-const THEME_COLOR = '#1DB954'; // Hijau Spotify
+// Impor Molekul
+import SongItem from '../components/molecules/SongItem';
+import SearchBar from '../components/molecules/SearchBar';
 
-// === KEMBALIKAN JSX LENGKAP DI SINI ===
-const SongItem = ({ item, isPlaying, onPress }) => (
-  <TouchableOpacity style={styles.songItemContainer} onPress={onPress}>
-    <Image source={{ uri: item.artwork }} style={styles.artwork} />
-    <View style={styles.songInfo}>
-      <Text style={[styles.songTitle, isPlaying && styles.playingText]} numberOfLines={1}>
-        {item.title}
-      </Text>
-      <Text style={styles.songArtist} numberOfLines={1}>{item.artist}</Text>
-    </View>
-    {isPlaying && (
-      <Ionicons name="volume-medium" size={24} color={THEME_COLOR} style={styles.playingIcon} />
-    )}
-  </TouchableOpacity>
-);
-// === AKHIR PENGEMBALIAN ===
+// Impor warna global
+import { BACKGROUND, TEXT_SECONDARY } from '../src/constants/colors';
 
 export default function SearchScreen({
   navigation,
@@ -75,19 +56,15 @@ export default function SearchScreen({
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+    // PERUBAHAN DI BARIS INI: 'bottom' dihapus
+    <SafeAreaView style={styles.safeArea} edges={['left', 'right']}>
       <View style={styles.container}>
-        <Text style={styles.title}>Pencarian</Text>
-        <View style={styles.searchBar}>
-          <Ionicons name="search" size={20} color={SUBTEXT_COLOR} style={styles.searchIcon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Artis atau lagu..."
-            placeholderTextColor={SUBTEXT_COLOR}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-        </View>
+        <SearchBar
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholder="Artis atau lagu..."
+        />
+        
         {filteredSongs.length > 0 ? (
           <FlatList
             data={filteredSongs}
@@ -98,7 +75,7 @@ export default function SearchScreen({
           />
         ) : (
           <View style={styles.emptyState}>
-            <Ionicons name="musical-notes-outline" size={80} color={SUBTEXT_COLOR} />
+            <Ionicons name="musical-notes-outline" size={80} color={TEXT_SECONDARY} />
             <Text style={styles.emptyText}>
               {searchQuery ? 'Tidak ada hasil ditemukan' : 'Temukan musik favorit Anda.'}
             </Text>
@@ -110,20 +87,26 @@ export default function SearchScreen({
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: BACKGROUND_COLOR },
-  container: { flex: 1, paddingHorizontal: 20, paddingTop: 10 },
-  title: { fontSize: 24, fontWeight: 'bold', color: TEXT_COLOR, marginBottom: 15 },
-  searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: BUTTON_COLOR, borderRadius: 8, paddingHorizontal: 10, marginBottom: 15 },
-  searchIcon: { marginRight: 10 },
-  input: { flex: 1, color: TEXT_COLOR, fontSize: 16, paddingVertical: 12 },
-  emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  emptyText: { fontSize: 16, color: SUBTEXT_COLOR, marginTop: 15 },
-  list: { flex: 1 },
-  songItemContainer: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10 },
-  artwork: { width: 50, height: 50, borderRadius: 8, marginRight: 15 },
-  songInfo: { flex: 1 },
-  songTitle: { fontSize: 16, fontWeight: 'bold', color: TEXT_COLOR },
-  songArtist: { fontSize: 14, color: SUBTEXT_COLOR },
-  playingText: { color: THEME_COLOR },
-  playingIcon: { marginLeft: 10 },
+  safeArea: { 
+    flex: 1, 
+    backgroundColor: BACKGROUND, 
+  },
+  container: { 
+    flex: 1, 
+    paddingHorizontal: 20, 
+    paddingTop: 10 
+  },
+  emptyState: { 
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
+  emptyText: { 
+    fontSize: 16, 
+    color: TEXT_SECONDARY, 
+    marginTop: 15 
+  },
+  list: { 
+    flex: 1 
+  },
 });
