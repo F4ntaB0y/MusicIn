@@ -12,10 +12,10 @@ const formatTime = (millis) => {
   const minutes = Math.floor(millis / 60000);
   const seconds = Math.floor((millis % 60000) / 1000);
   
-  const formattedMinutes = minutes < 10 ? `0${minutes}` : `${minutes}`;
-  const formattedSeconds = seconds < 10 ? `0${seconds}` : `${seconds}`;
+  const formattedMinutes = minutes < 10 ? 0${minutes} : ${minutes};
+  const formattedSeconds = seconds < 10 ? 0${seconds} : ${seconds};
 
-  return `${formattedMinutes}:${formattedSeconds}`;
+  return ${formattedMinutes}:${formattedSeconds};
 };
 
 export default function MusicPlayerScreen() {
@@ -67,7 +67,7 @@ export default function MusicPlayerScreen() {
       <View style={styles.progressContainer}>
         <View style={styles.progressBarBackground}>
           {/* Garis Hijau yang bergerak sesuai durasi */}
-          <View style={[styles.progressBarFill, { width: `${progressPercent}%` }]} /> 
+          <View style={[styles.progressBarFill, { width: ${progressPercent}% }]} /> 
         </View>
         <View style={styles.timeRow}>
             <Text style={styles.timeText}>{formatTime(position)}</Text>
